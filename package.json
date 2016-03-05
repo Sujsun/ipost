@@ -1,0 +1,36 @@
+{
+  "name": "ipost",
+  "version": "0.0.1",
+  "description": "Promise feature for iframe post message",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sujsun/ipost.git"
+  },
+  "keywords": [
+    "postMessage",
+    "deferred",
+    "iframe",
+    "jquery",
+    "promise",
+    "javascript"
+  ],
+  "author": "Sundarasan Natarajan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sujsun/ipost/issues"
+  },
+  "homepage": "https://github.com/Sujsun/ipost#readme",
+  "dependencies": {
+    "jquery": "^2.2.1",
+    "minivents": "^2.0.1"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-watchify": "^0.1.0"
+  }
+}

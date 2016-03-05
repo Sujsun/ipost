@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ipost | Demo</title>
+  <style>
+    iframe {
+      width: 100%;
+      height: 430px;
+    }
+  </style>
+</head>
+<body>
+  <h2>ipost | Parent Frame</h2>
+
+  <div>
+    <span>Ask to iframe:</span>
+    <button id="ask-who">Who are you?</button>
+    <button id="ask-name">What is your name?</button>
+    <button id="ask-age">What is your age?</button>
+    <button id="ask-bloodgroup">What is your blood group?</button>
+  </div>
+
+  <h4>Logs</h4>
+  <button id="clear-logs">Clear</button>
+  <div id="log-area" class="log-area"></div>
+
+  <br/>
+
+  <div style="font-weight: bold;">IFrame:</div><br/>
+  <iframe id="child-frame"></iframe>
+
+  <script src="../node_modules/jquery/dist/jquery.js"></script>
+  <script src="js/view-logger.js"></script>
+  <script src="../dist/ipost.js"></script>
+
+  <script src="js/action.js"></script>
+
+  <link rel="stylesheet" href="css/view-logger.css"></link>
+</body>
+</html>
