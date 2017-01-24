@@ -8,7 +8,7 @@ var ipost = new IPost('http://localhost:8888/iframe.html');
 ipost.inject();
 ipost.listen();
 
-ipost('What is your name?').then(function (message) {
+ipost.post('What is your name?').then(function (message) {
   console.log('Reply:', message);
 }).fail(function (err) {
   console.error('Error:', err);
