@@ -18,12 +18,22 @@ function IFrameClass(targetOrigin, options) {
   this.targetOrigin = targetOrigin;
   this.config || (this.config = {});
   this.config = extend(defaults, options);
+  typeof(this.config.mode) === 'string' || (this.config.mode = 'iframe');
   this._requestPromises || (this._requestPromises = {});
+  this._readyDeferred = $.Deferred();
   this.event = new Events();
 }
 
 IFrameClass.prototype.inject = function() {
   return this._IFrame.apply(this, arguments);
+};
+
+IFrameClass.prototype.open = function () {
+  return this._openPopup.apply(this, arguments);
+};
+
+IFrameClass.prototype.close = function () {
+  return this._closePopup.apply(this, arguments);
 };
 
 IFrameClass.prototype.listen = function() {
@@ -32,6 +42,14 @@ IFrameClass.prototype.listen = function() {
 
 IFrameClass.prototype.post = function(payload) {
   return this._post.apply(this, arguments);
+};
+
+IFrameClass.prototype.ready = function() {
+  return this._postReady();
+};
+
+IFrameClass.prototype.readyDeferred = function () {
+  return this._readyDeferred;
 };
 
 IFrameClass.prototype.on = function(eventName, handler) {
@@ -43,9 +61,19 @@ IFrameClass.prototype.on = function(eventName, handler) {
  */
 IFrameClass.prototype._IFrame = function() {
   if (!this._iframeReadyDeferred) {
-    this._iframeReadyDeferred = this._injectIFrame.apply(this, arguments);
+    this._iframeReadyDeferred = $.when(this._injectIFrame.apply(this, arguments), this._readyDeferred).then(function (iframeArgs) {
+      var deferred = $.Deferred();
+      return deferred.resolve.apply(deferred, iframeArgs);
+    });
   }
   return this._iframeReadyDeferred;
+};
+
+IFrameClass.prototype._PopupWindow = function () {
+  return $.when(this._openPopup.apply(this, arguments), this._readyDeferred).then(function (openPopupArgs) {
+    var deferred = $.Deferred();
+    return deferred.resolve.apply(deferred, openPopupArgs);
+  });
 };
 
 IFrameClass.prototype._injectIFrame = function(iframe, options) {
@@ -70,6 +98,47 @@ IFrameClass.prototype._injectIFrame = function(iframe, options) {
   return deferred;
 };
 
+IFrameClass.prototype._openPopup = function () {
+  var self = this,
+    deferred = $.Deferred(),
+    openArgs;
+  if (!this._isPopupWindowOpen) {
+    openArgs = [ this.targetOrigin, ];
+    if (typeof(this.config.target) === 'string') {
+      openArgs.push(this.config.target);
+    }
+    if (typeof(this.config.windowOptions) === 'string') {
+      openArgs.push(this.config.windowOptions);
+    }
+    this._popupWindow = window.open.apply(window, openArgs);
+    this._isPopupWindowOpen = true;
+    this._popupWindowIntervalIndex = window.setInterval(function () {
+      if (self._popupWindow.closed) {
+        self._closePopup();
+      }
+    }, 500);
+  }
+  deferred.resolve(this._popupWindow, $(this._popupWindow));
+  return deferred.promise();
+};
+
+IFrameClass.prototype._closePopup = function () {
+  if (this._popupWindow) {
+    window.clearInterval(this._popupWindowIntervalIndex);
+    this._popupWindow.close();
+    delete this._popupWindow;
+    this._isPopupWindowOpen = false;
+  }
+};
+
+IFrameClass.prototype._postReady = function () {
+  var request = {};
+  request.plugin = plugin.name;
+  request.type = 'ready';
+  request.mode = this.config.mode;
+  this._postRaw(request);
+};
+
 IFrameClass.prototype._post = function() {
   var request = {},
     index;
@@ -84,14 +153,36 @@ IFrameClass.prototype._post = function() {
 
 IFrameClass.prototype._postRaw = function(request) {
   var self = this;
-  if (this.config.child && window.parent) {
+  if(this.config.child && window.parent) {
     window.parent.postMessage(JSON.stringify(request), self.targetOrigin || '*');
     return $.Deferred().resolve().promise();
+  } else if (this.config.mode === 'popup' && (this.config.popup || this.config.child) && window.opener) {
+    window.opener.postMessage(JSON.stringify(request), self.targetOrigin || '*');
+    return $.Deferred().resolve().promise();
   } else {
-    return this._IFrame().then(function(iframe, $iframe) {
-      iframe.contentWindow.postMessage(JSON.stringify(request), self.targetOrigin);
-      return $.Deferred().resolve().promise();
-    });
+    if (this.config.mode === 'popup') {
+      return this._PopupWindow().then(function(win, $win) {
+        var deferred = $.Deferred();
+        try {
+          win.postMessage(JSON.stringify(request), self.targetOrigin);
+          deferred.resolve();
+        } catch (err) {
+          deferred.reject(err);
+        }
+        return deferred.promise();
+      });
+    } else {
+      return this._IFrame().then(function(iframe, $iframe) {
+        var deferred = $.Deferred();
+        try {
+          iframe.contentWindow.postMessage(JSON.stringify(request), self.targetOrigin);
+          deferred.resolve();
+        } catch (err) {
+          deferred.reject(err);
+        }
+        return deferred.promise();
+      });
+    }
   }
 };
 
@@ -129,7 +220,12 @@ IFrameClass.prototype._messageHandler = function(message) {
   }
   if (message.plugin === plugin.name) {
 
-    if (message.type === 'ping') {
+    if (message.type === 'ready' && this.config.mode === message.mode) {
+
+      this._readyDeferred.resolve();
+      this.event.emit('ready');
+
+    } else if(message.type === 'ping') {
 
       var pingDeferred = $.Deferred();
       pingDeferred._ipostMessage = message;

@@ -6,9 +6,17 @@
   /**
    * Instantiating IPost
    */
-  var ipost = new IPost('http://localhost:8989/demo/iframe/index.html');
+  var ipost = new IPost('http://localhost:8989/demo/iframe/index.html'),
+    popupIpost = new IPost('http://localhost:8989/demo/popup/index.html', {
+      mode: 'popup',
+      target: '_blank',
+      windowOptions: 'toolbar=no, scrollbars=no, resizable=no, top=500,left=500, width=400, height=400',
+    });
+
   ipost.inject(iframeElement);
   ipost.listen();
+
+  popupIpost.listen();
 
   /**
    * Binding event listeners to the buttons
@@ -33,6 +41,32 @@
     console.clearLogs();
   });
 
+  document.getElementById('popup-ask-who').addEventListener('click', function () {
+    popupPost('Who are you?');
+  });
+
+  document.getElementById('popup-ask-name').addEventListener('click', function () {
+    popupPost('What is your name?');
+  });
+
+  document.getElementById('popup-ask-age').addEventListener('click', function () {
+    popupPost('What is your age?');
+  });
+
+  document.getElementById('popup-ask-bloodgroup').addEventListener('click', function () {
+    popupPost('What is your blood group?');
+  });
+
+  document.getElementById('popup-open').addEventListener('click', function () {
+    console.log('Opening pop up');
+    popupIpost.open();
+  });
+
+  document.getElementById('popup-close').addEventListener('click', function () {
+    console.log('Closing pop up');
+    popupIpost.close();
+  });
+
   /**
    * Helper method to post message to iframe
    */
@@ -43,6 +77,16 @@
       console.info('Got reply from iframe:', reply);
     }).fail(function(reply) {
       console.error('Got error from iframe:', reply);
+    });
+  }
+
+  function popupPost (message) {
+    console.log('Posting to popup. Message:', message);
+    // Posting message using popup ipost object
+    popupIpost.post(message).then(function(reply) {
+      console.info('Got reply from popup:', reply);
+    }).fail(function(reply) {
+      console.error('Got error from popup:', reply);
     });
   }
 

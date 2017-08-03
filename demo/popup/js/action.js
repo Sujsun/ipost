@@ -5,7 +5,10 @@
   /**
    * Instantiating IPost
    */
-  var ipost = new IPost(undefined, { child: true });
+  var ipost = new IPost(undefined, {
+    mode: 'popup',
+    popup: true,
+  });
   ipost.listen();
 
   /**
@@ -35,7 +38,7 @@
    * Helper method to post message to iframe
    */
   function post (message) {
-    console.log('Posting to parent window. Message:', message);
+    console.log('Posting to opener window. Message:', message);
     // Posting message using ipost object
     ipost.post(message).then(function(reply) {
       console.info('Got reply from parent window:', reply);
@@ -48,7 +51,7 @@
    * Message Listener
    */
   ipost.on('message', function (deferred, message) {
-    console.log('Received message from parent window:', message);
+    console.log('Received message from opener window:', message);
     var replyMessage = '';
 
     switch (message) {
