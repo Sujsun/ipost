@@ -1,5 +1,5 @@
 # ipost
-Promise feature for iframe post message
+Promise feature for iframe post message and popup window post message
 
 
 ## MODE: IFRAME
