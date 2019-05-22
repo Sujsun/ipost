@@ -1,5 +1,5 @@
 # ipost
-Promise feature for iframe post message
+Promise feature for iframe post message and popup window post message
 
 
 ## MODE: IFRAME
@@ -91,7 +91,7 @@ var ipost = new IPost('http://localhost:8888/iframe.html', {
 /**
  * For popup window mode
  */
-var ipost = new IPost('http://localhost:8888/iframe.html', {
+var ipost = new IPost('http://localhost:8888/popup.html', {
   mode: 'popup',
   child: false,
   windowOptions: 'toolbar=no, scrollbars=no,',
