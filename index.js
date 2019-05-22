@@ -192,6 +192,7 @@ IFrameClass.prototype._listen = function(request) {
     $(window).on('message', function(event) {
       self._messageHandler(event.originalEvent.data);
     });
+    self._isListening = true;
   }
 };
 
