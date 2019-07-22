@@ -1,5 +1,4 @@
 var Events = require('minivents');
-var $ = require('jquery');
 
 var plugin = {
   name: 'ipost',
