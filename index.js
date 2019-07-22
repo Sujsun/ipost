@@ -213,12 +213,15 @@ IFrameClass.prototype._postReply = function(deferred, _arguments) {
 IFrameClass.prototype._messageHandler = function(message) {
   var self = this;
 
-  try {
-    message = JSON.parse(message);
-  } catch (exception) {
-    console.warn('Couldnot parse the received message. Message:', message);
-    return;
+  if (typeof message === 'string') {
+    try {
+      message = JSON.parse(message);
+    } catch (exception) {
+      console.warn('Couldnot parse the received message. Message:', message);
+      return
+    }
   }
+  
   if (message.plugin === plugin.name) {
 
     if (message.type === 'ready' && this.config.mode === message.mode) {
