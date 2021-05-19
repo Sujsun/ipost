@@ -40,6 +40,10 @@ IFrameClass.prototype.listen = function() {
   return this._listen.apply(this, arguments);
 };
 
+IFrameClass.prototype.unlisten = function() {
+  return this._unlisten.apply(this, arguments);
+};
+
 IFrameClass.prototype.post = function(payload) {
   return this._post.apply(this, arguments);
 };
@@ -54,6 +58,10 @@ IFrameClass.prototype.readyDeferred = function () {
 
 IFrameClass.prototype.on = function(eventName, handler) {
   this.event.on(eventName, handler);
+};
+
+IFrameClass.prototype.off = function(eventName, handler) {
+  this.event.off(eventName, handler);
 };
 
 /**
@@ -188,11 +196,21 @@ IFrameClass.prototype._postRaw = function(request) {
 
 IFrameClass.prototype._listen = function(request) {
   var self = this;
+  this._unlisten()
   if (!self._isListening) {
-    $(window).on('message', function(event) {
+    this._messageHandlerFunc = function (event) {
       self._messageHandler(event.originalEvent.data);
-    });
+    })
+    $(window).on('message', this._messageHandlerFunc);
     self._isListening = true;
+  }
+};
+
+IFrameClass.prototype._unlisten = function(request) {
+  var self = this;
+  if (self._isListening) {
+    $(window).off('message', this._messageHandlerFunc);
+    self._isListening = false;
   }
 };
 
