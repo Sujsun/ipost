@@ -200,7 +200,7 @@ IFrameClass.prototype._listen = function(request) {
   if (!self._isListening) {
     this._messageHandlerFunc = function (event) {
       self._messageHandler(event.originalEvent.data);
-    })
+    }
     $(window).on('message', this._messageHandlerFunc);
     self._isListening = true;
   }
