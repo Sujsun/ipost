@@ -207,10 +207,9 @@ IFrameClass.prototype._listen = function(request) {
 };
 
 IFrameClass.prototype._unlisten = function(request) {
-  var self = this;
-  if (self._isListening) {
+  if (this._isListening) {
     $(window).off('message', this._messageHandlerFunc);
-    self._isListening = false;
+    this._isListening = false;
   }
 };
 
