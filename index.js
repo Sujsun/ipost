@@ -90,21 +90,15 @@ IFrameClass.prototype._injectIFrame = function(iframe, options) {
 
   options || (options = {});
   options.src && (this.targetOrigin = options.src);
-  var iframeId = Random.guid();
-  $iframe.attr('name', iframeId);
-
-  $('body').append($iframe);
+  $iframe.attr('src', this.targetOrigin);
   this._isIFrameInjected = true;
-
-  $iframe.on('load', function () {
+  $iframe.on('load', function() {
     window.clearTimeout(this._iframeLoadTimeoutIndex);
     deferred.resolve($iframe.get(0), $iframe);
-    $iframe.removeAttr('name')
   });
-
-  this.childWindow = window.open(this.targetOrigin, iframeId)
-
-  this._iframeLoadTimeoutIndex = window.setTimeout(function () {
+  $('body').append($iframe);
+  this.childWindow = $iframe.get(0).contentWindow
+  this._iframeLoadTimeoutIndex = window.setTimeout(function() {
     var error = new Error();
     error.type = 'iframe_load_timeout';
     error.message = 'IFrame timed out to load';
