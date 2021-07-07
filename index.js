@@ -209,9 +209,6 @@ IFrameClass.prototype._listen = function(options || (options = {})) {
 
   var self = this;
 
-  if (self._isListening) {
-    return
-  }
 
   if (self._isListening) {
     return
