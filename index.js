@@ -221,7 +221,7 @@ IFrameClass.prototype._listen = function(options || (options = {})) {
       return
     }
 
-    else if (!self.config.child && (self.childWindow !== event.source || domain !== event.origin)) {
+    else if (!self.config.child && !(self.childWindow === event.source || domain === event.origin)) {
       return
     }
 
