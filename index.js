@@ -203,8 +203,15 @@ IFrameClass.prototype._postRaw = function(request) {
   }
 };
 
-IFrameClass.prototype._listen = function({ domain, window: targetWindow }) {
+IFrameClass.prototype._listen = function(options) {
+  var domain = options.domain
+  var targetWindow = options.window
+
   var self = this;
+
+  if (self._isListening) {
+    return
+  }
 
   if (self._isListening) {
     return
