@@ -102,9 +102,7 @@ IFrameClass.prototype._injectIFrame = function(iframe, options) {
     $iframe.removeAttr('name')
   });
 
-  iframe = window.open(this.targetOrigin, iframeId)
-
-  this.childWindow = iframe
+  this.childWindow = window.open(this.targetOrigin, iframeId)
 
   this._iframeLoadTimeoutIndex = window.setTimeout(function () {
     var error = new Error();
@@ -218,11 +216,7 @@ IFrameClass.prototype._listen = function(options) {
   $(window).on('message', function (e) {
     var event = e.originalEvent
 
-    if (self.config.child && targetWindow !== window.opener) {
-      return
-    }
-
-    else if (!self.config.child && !(self.childWindow === event.source || domain === event.origin)) {
+    if (!self.config.child && !(self.childWindow === event.source || domain === event.origin)) {
       return
     }
 
