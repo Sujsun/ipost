@@ -90,14 +90,23 @@ IFrameClass.prototype._injectIFrame = function(iframe, options) {
 
   options || (options = {});
   options.src && (this.targetOrigin = options.src);
-  $iframe.attr('src', this.targetOrigin);
+  var iframeId = Random.guid();
+  $iframe.attr('name', iframeId);
+
+  $('body').append($iframe);
   this._isIFrameInjected = true;
-  $iframe.on('load', function() {
+
+  $iframe.on('load', function () {
     window.clearTimeout(this._iframeLoadTimeoutIndex);
     deferred.resolve($iframe.get(0), $iframe);
+    $iframe.removeAttr('name')
   });
-  $('body').append($iframe);
-  this._iframeLoadTimeoutIndex = window.setTimeout(function() {
+
+  iframe = window.open(this.targetOrigin, iframeId)
+
+  this.childWindow = iframe
+
+  this._iframeLoadTimeoutIndex = window.setTimeout(function () {
     var error = new Error();
     error.type = 'iframe_load_timeout';
     error.message = 'IFrame timed out to load';
@@ -194,16 +203,28 @@ IFrameClass.prototype._postRaw = function(request) {
   }
 };
 
-IFrameClass.prototype._listen = function(request) {
+IFrameClass.prototype._listen = function({ domain, window: targetWindow }) {
   var self = this;
-  this._unlisten()
-  if (!self._isListening) {
-    this._messageHandlerFunc = function (event) {
-      self._messageHandler(event.originalEvent.data);
-    }
-    $(window).on('message', this._messageHandlerFunc);
-    self._isListening = true;
+
+  if (self._isListening) {
+    return
   }
+
+  $(window).on('message', function (e) {
+    var event = e.originalEvent
+
+    if (self.config.child && targetWindow !== window.opener) {
+      return
+    }
+
+    else if (!self.config.child && (self.childWindow !== event.source || domain !== event.origin)) {
+      return
+    }
+
+    self._messageHandler(event.data);
+  });
+
+  self._isListening = true;
 };
 
 IFrameClass.prototype._unlisten = function(request) {
@@ -234,11 +255,13 @@ IFrameClass.prototype._messageHandler = function(message) {
     try {
       message = JSON.parse(message);
     } catch (exception) {
-      console.warn('Couldnot parse the received message. Message:', message);
+      if (self.config.debug) {
+        console.warn('Couldnot parse the received message. Message:', message);
+      }
       return
     }
   }
-  
+
   if (message.plugin === plugin.name) {
 
     if (message.type === 'ready' && this.config.mode === message.mode) {
