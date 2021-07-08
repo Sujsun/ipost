@@ -296,7 +296,9 @@ IFrameClass.prototype._messageHandler = function(message) {
             requestPromise.notify.apply(requestPromise, message.payload);
             break;
           default:
-            console.warn('Unknown message type. messageType:', message.type);
+            if (self.config.debug) {
+              console.warn('Unknown message type. messageType:', message.type);
+            }
         }
 
       }
