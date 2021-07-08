@@ -97,6 +97,7 @@ IFrameClass.prototype._injectIFrame = function(iframe, options) {
     deferred.resolve($iframe.get(0), $iframe);
   });
   $('body').append($iframe);
+  this.childWindow = $iframe.get(0).contentWindow
   this._iframeLoadTimeoutIndex = window.setTimeout(function() {
     var error = new Error();
     error.type = 'iframe_load_timeout';
@@ -194,16 +195,29 @@ IFrameClass.prototype._postRaw = function(request) {
   }
 };
 
-IFrameClass.prototype._listen = function(request) {
+IFrameClass.prototype._listen = function(options) {
+  options = options || (options = {})
+  var domain = options.domain
+  var targetWindow = options.window
+
   var self = this;
-  this._unlisten()
-  if (!self._isListening) {
-    this._messageHandlerFunc = function (event) {
-      self._messageHandler(event.originalEvent.data);
-    }
-    $(window).on('message', this._messageHandlerFunc);
-    self._isListening = true;
+
+
+  if (self._isListening) {
+    return
   }
+
+  $(window).on('message', function (e) {
+    var event = e.originalEvent
+
+    if (!self.config.child && !(self.childWindow === event.source || domain === event.origin)) {
+      return
+    }
+
+    self._messageHandler(event.data);
+  });
+
+  self._isListening = true;
 };
 
 IFrameClass.prototype._unlisten = function(request) {
@@ -234,11 +248,13 @@ IFrameClass.prototype._messageHandler = function(message) {
     try {
       message = JSON.parse(message);
     } catch (exception) {
-      console.warn('Couldnot parse the received message. Message:', message);
+      if (self.config.debug) {
+        console.warn('Couldnot parse the received message. Message:', message);
+      }
       return
     }
   }
-  
+
   if (message.plugin === plugin.name) {
 
     if (message.type === 'ready' && this.config.mode === message.mode) {
@@ -280,7 +296,9 @@ IFrameClass.prototype._messageHandler = function(message) {
             requestPromise.notify.apply(requestPromise, message.payload);
             break;
           default:
-            console.warn('Unknown message type. messageType:', message.type);
+            if (self.config.debug) {
+              console.warn('Unknown message type. messageType:', message.type);
+            }
         }
 
       }
